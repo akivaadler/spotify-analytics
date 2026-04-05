@@ -15,6 +15,7 @@ from routers.podcasts import router as podcasts_router
 from routers.devices import router as devices_router
 from routers.search import router as search_router
 from routers.insights import router as insights_router
+from routers.settings import router as settings_router
 
 _start_time = time.time()
 
@@ -38,6 +39,7 @@ app.include_router(podcasts_router, prefix="/api")
 app.include_router(devices_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
 app.include_router(insights_router, prefix="/api")
+app.include_router(settings_router)
 
 
 @app.get("/api/health")

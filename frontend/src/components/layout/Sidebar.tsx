@@ -50,11 +50,23 @@ export default function Sidebar() {
           );
         })}
       </nav>
-      <div className="mt-auto px-3 pt-6">
+      <div className="mt-auto px-3 pt-6 flex flex-col gap-3">
+        <Link
+          href="/settings"
+          style={{
+            color: pathname === "/settings" ? COLORS.text : COLORS.muted,
+            background: pathname === "/settings" ? COLORS.surface : "transparent",
+            borderRadius: 6,
+          }}
+          className="flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors hover:text-white"
+        >
+          <span className="text-base w-5 text-center">⚙</span>
+          Settings
+        </Link>
         <Link
           href="/"
           style={{ color: COLORS.muted }}
-          className="text-xs hover:text-white transition-colors"
+          className="text-xs hover:text-white transition-colors px-3"
         >
           ↑ Upload new data
         </Link>

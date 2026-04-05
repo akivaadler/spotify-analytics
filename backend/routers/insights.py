@@ -1,4 +1,3 @@
-import os
 import json
 import traceback
 import textwrap
@@ -7,10 +6,9 @@ import numpy as np
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from data.store import store
+from routers.settings import get_anthropic_key
 
 router = APIRouter(prefix="/insights")
-
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 
 def _require_ready():
@@ -112,13 +110,14 @@ def _call_claude(query: str) -> str:
     except ImportError:
         raise HTTPException(status_code=500, detail="anthropic package not installed. Run: pip install anthropic")
 
-    if not ANTHROPIC_API_KEY:
+    api_key = get_anthropic_key()
+    if not api_key:
         raise HTTPException(
             status_code=400,
-            detail="ANTHROPIC_API_KEY not set. Start the backend with: ANTHROPIC_API_KEY=your_key uvicorn main:app --reload"
+            detail="No Anthropic API key found. Add one in Settings or start the backend with ANTHROPIC_API_KEY set."
         )
 
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = anthropic.Anthropic(api_key=api_key)
     message = client.messages.create(
         model="claude-opus-4-6",
         max_tokens=1024,
@@ -195,10 +194,11 @@ def custom_query(req: CustomQueryRequest):
 @router.get("/custom/status")
 def llm_status():
     """Returns whether LLM custom queries are available."""
+    key = get_anthropic_key()
     return {
-        "available": bool(ANTHROPIC_API_KEY),
+        "available": bool(key),
         "message": (
-            "Ready" if ANTHROPIC_API_KEY
-            else "Set ANTHROPIC_API_KEY env var to enable custom queries"
+            "Ready" if key
+            else "Add your Anthropic API key in Settings to enable custom queries"
         ),
     }

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, AreaChart, Area, LineChart, Line,
@@ -334,9 +335,13 @@ function CustomQueryPanel() {
       </div>
       <p style={{ color: COLORS.textMuted }} className="text-xs mb-4">
         Ask any question about your listening history in plain English. Claude generates and runs the analysis.
-        {!llmAvailable && (
+        {!llmAvailable && llmAvailable !== null && (
           <span style={{ color: "#f59e0b" }}>
-            {" "}Set <code style={{ background: COLORS.surface2, padding: "1px 4px", borderRadius: 3 }}>ANTHROPIC_API_KEY</code> to enable.
+            {" "}Add your Anthropic API key in{" "}
+            <Link href="/settings" style={{ color: COLORS.green, textDecoration: "underline" }}>
+              Settings
+            </Link>{" "}
+            to enable.
           </span>
         )}
       </p>
@@ -443,26 +448,50 @@ export default function InsightsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 style={{ color: COLORS.text }} className="text-2xl font-bold">Insights</h1>
-        <p style={{ color: COLORS.textMuted }} className="text-sm mt-1">
-          20 non-obvious metrics about your listening habits. Click any card to explore.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 style={{ color: COLORS.text }} className="text-2xl font-bold">Insights</h1>
+          <p style={{ color: COLORS.textMuted }} className="text-sm mt-1">
+            20 non-obvious metrics + ask your own questions in plain English.
+          </p>
+        </div>
+        <Link
+          href="/settings"
+          style={{
+            color: COLORS.textMuted,
+            fontSize: 12,
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            padding: "6px 12px",
+            background: COLORS.surface,
+            borderRadius: 8,
+            whiteSpace: "nowrap",
+          }}
+          className="hover:text-white transition-colors"
+        >
+          ⚙ Settings
+        </Link>
       </div>
 
-      {/* Metrics grid */}
-      {loading ? (
-        <div style={{ color: COLORS.textMuted }} className="text-center py-16">Computing insights…</div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {insights.map(insight => (
-            <MetricCard key={insight.id} insight={insight} onClick={() => setSelected(insight)} />
-          ))}
-        </div>
-      )}
-
-      {/* Custom query */}
+      {/* Custom query — top */}
       <CustomQueryPanel />
+
+      {/* Metrics grid */}
+      <div>
+        <h2 style={{ color: COLORS.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-3">
+          Pre-computed Metrics
+        </h2>
+        {loading ? (
+          <div style={{ color: COLORS.textMuted }} className="text-center py-16">Computing insights…</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {insights.map(insight => (
+              <MetricCard key={insight.id} insight={insight} onClick={() => setSelected(insight)} />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Detail drawer */}
       {selected && <InsightDrawer insight={selected} onClose={() => setSelected(null)} />}
