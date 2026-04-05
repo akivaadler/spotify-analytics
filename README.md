@@ -20,25 +20,22 @@ Deep analytics for your Spotify Extended Streaming History. Upload your download
 ### Requirements
 
 - Python 3.10+
-- Node.js 18+
+- Node.js 20+
 
-### Backend
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-### Frontend
+### First-time setup
 
 ```bash
-cd frontend
-npm install
-npm run dev
+pip install -r backend/requirements.txt
+cd frontend && npm install && cd ..
 ```
 
-Open [http://localhost:3000](http://localhost:3000), upload your Spotify JSON files, and explore.
+### Start (one command)
+
+```bash
+./start.sh
+```
+
+Then open [http://localhost:3000](http://localhost:3000), upload your Spotify JSON files, and explore.
 
 ## Data
 
