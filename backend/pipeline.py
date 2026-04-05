@@ -16,6 +16,7 @@ from precompute.albums import compute_album_agg
 from precompute.sessions import compute_session_stats
 from precompute.podcasts import compute_show_agg, compute_episode_agg
 from precompute.devices import compute_platform_agg, compute_device_agg
+from precompute.insights import compute_all_insights
 
 
 _lock = threading.Lock()
@@ -76,7 +77,10 @@ def run_pipeline(file_bytes_list: List[bytes]):
 
             store.yearly_artist_rank = compute_yearly_artist_rank(df)
             store.yearly_track_rank = compute_yearly_track_rank(df)
-            store.progress_pct = 98
+            store.progress_pct = 94
+
+            store.insights = compute_all_insights(df)
+            store.progress_pct = 99
 
             store.state = "ready"
             store.progress_pct = 100

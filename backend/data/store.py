@@ -30,6 +30,7 @@ class AppStore:
     yearly_artist_rank: Optional[pd.DataFrame] = None
     yearly_track_rank: Optional[pd.DataFrame] = None
     streak_data: Optional[dict] = None
+    insights: Optional[dict] = None
 
     # Status
     state: str = "idle"  # idle | processing | ready

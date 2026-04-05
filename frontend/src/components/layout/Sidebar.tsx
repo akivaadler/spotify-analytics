@@ -5,6 +5,7 @@ import { COLORS } from "@/lib/constants";
 
 const NAV = [
   { href: "/overview", label: "Overview", icon: "◉" },
+  { href: "/insights", label: "Insights", icon: "✦" },
   { href: "/tracks", label: "Tracks", icon: "♪" },
   { href: "/artists", label: "Artists", icon: "★" },
   { href: "/albums", label: "Albums", icon: "◫" },
