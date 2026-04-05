@@ -1,16 +1,20 @@
 #!/bin/bash
 # Start backend and frontend together
 # Usage: ./start.sh
+# Optional: export ANTHROPIC_API_KEY=sk-ant-... before running for LLM custom queries
 
 export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
 
+# Capture absolute root directory before any cd
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 # Start backend
-cd "$(dirname "$0")/backend"
+cd "$ROOT_DIR/backend"
 uvicorn main:app --reload &
 BACKEND_PID=$!
 
 # Start frontend
-cd "$(dirname "$0")/frontend"
+cd "$ROOT_DIR/frontend"
 npm run dev &
 FRONTEND_PID=$!
 
