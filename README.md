@@ -42,3 +42,7 @@ Then open [http://localhost:3000](http://localhost:3000), upload your Spotify JS
 Download your Spotify Extended Streaming History at **spotify.com/account/privacy** → "Download your data" → "Extended streaming history". Spotify emails a download link within ~30 days.
 
 Upload the `Streaming_History_Audio_*.json` files (and optionally `Streaming_History_Video_*.json`).
+
+## encore (Wrapped-style app)
+
+`wrapped/` holds a separate, Vercel-ready Next.js app. It has a tap-through yearly story, a dashboard of more than 25 metrics, and an AI "Metric Lab" for building your own stats. It runs entirely in the browser. See [wrapped/README.md](wrapped/README.md).
