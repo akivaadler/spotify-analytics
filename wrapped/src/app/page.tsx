@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useData } from "@/lib/data-context";
 import { Uploader } from "@/components/Uploader";
-import { Blob, Nav, Rings, Starburst, Squiggle } from "@/components/ui";
+import { Blob, Nav, Rings, Starburst } from "@/components/ui";
+import { RequestGuide } from "@/components/RequestGuide";
 import { fmtInt } from "@/lib/analytics";
 
 const FEATURES = [
@@ -41,9 +42,24 @@ export default function Home() {
         {status === "loading" && <div className="mt-16 h-40 animate-pulse rounded-[2rem] bg-white/5" />}
 
         {status === "empty" && (
-          <section className="d3 relative mt-12 animate-rise">
-            <Uploader />
-          </section>
+          <>
+            <section className="d3 relative mt-12 animate-rise">
+              <a
+                href="#get-data"
+                className="mb-4 flex items-center justify-between gap-4 rounded-[1.5rem] bg-pink px-5 py-4 text-ink transition hover:scale-[1.01] sm:px-7"
+              >
+                <span>
+                  <span className="font-display block text-2xl font-extrabold">Don&apos;t have your Spotify data yet?</span>
+                  <span className="font-medium">It&apos;s free and takes 2 minutes to request. Here&apos;s how ↓</span>
+                </span>
+                <span className="font-display hidden text-4xl font-extrabold sm:block">↓</span>
+              </a>
+              <Uploader />
+            </section>
+            <div className="d4 mt-12 animate-rise">
+              <RequestGuide />
+            </div>
+          </>
         )}
 
         {status === "ready" && library && (
@@ -98,6 +114,11 @@ export default function Home() {
                 <Uploader compact />
               </div>
             )}
+            {library.source === "demo" && (
+              <div className="mt-10">
+                <RequestGuide />
+              </div>
+            )}
           </section>
         )}
 
@@ -129,24 +150,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* how-to */}
-        <section className="relative mt-24 grid gap-8 rounded-[2rem] bg-ink-2 p-7 sm:p-10 md:grid-cols-[1fr_1.3fr]">
-          <Squiggle className="absolute -top-6 right-8 w-40" color="#d4ff3a" />
-          <h2 className="font-display text-4xl font-extrabold sm:text-5xl">How to get your data</h2>
-          <ol className="space-y-4 text-cream/80">
-            {[
-              <>Go to <b className="text-cream">spotify.com/account/privacy</b> while signed in.</>,
-              <>Check <b className="text-cream">“Extended streaming history”</b> and request it. You need this one, not just “Account data”.</>,
-              <>Confirm the email. Spotify sends a download link, usually within a few days and at most about 30.</>,
-              <>Download <b className="text-cream">my_spotify_data.zip</b> and drop it here, either the whole zip or the JSON files inside it.</>,
-            ].map((s, i) => (
-              <li key={i} className="flex gap-4">
-                <span className="font-display flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-lime text-lg font-extrabold text-ink">{i + 1}</span>
-                <span className="pt-1.5">{s}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
 
         <footer className="mt-16 text-center text-xs text-cream/40">
           encore is an independent fan project and isn&apos;t affiliated with or endorsed by Spotify.
