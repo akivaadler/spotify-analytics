@@ -102,7 +102,7 @@ export default function Home() {
         )}
 
         {/* marquee */}
-        <div className="relative -mx-6 mt-20 overflow-hidden border-y border-white/10 py-4">
+        <div className="relative -mx-4 mt-20 overflow-hidden border-y border-white/10 py-4 sm:-mx-6">
           <div className="flex w-max animate-marquee gap-10 font-display text-3xl font-extrabold text-cream/80">
             {[...Array(2)].flatMap((_, k) =>
               ["obsessions", "comebacks", "night owl hours", "love/hate songs", "album runs", "streaks", "rising artists", "quiet favorites", "your own metrics"].map((w) => (
