@@ -130,7 +130,7 @@ export default function Lab() {
     <div className="min-h-dvh overflow-x-hidden">
       <Nav />
       <main className="relative mx-auto max-w-6xl px-4 pb-24 pt-10 sm:px-6">
-        <Starburst className="pointer-events-none absolute -right-20 -top-10 w-56 animate-spin-slow opacity-80" color="#6b3bff" />
+        <Starburst className="pointer-events-none absolute -right-16 -top-12 w-32 animate-spin-slow opacity-60 sm:-right-20 sm:-top-10 sm:w-56 sm:opacity-80" color="#6b3bff" />
         <h1 className="font-display relative text-6xl font-extrabold sm:text-8xl">
           Metric <span className="text-pink">Lab.</span>
         </h1>
@@ -138,7 +138,7 @@ export default function Lab() {
           Describe any stat you want. AI writes the code, it runs on your data here in your browser, and you can add the result to your dashboard and story.
         </p>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] [&>*]:min-w-0">
           {/* composer */}
           <section className="rounded-[2rem] bg-violet p-6 sm:p-8">
             <label htmlFor="prompt" className="font-display text-3xl font-extrabold">
@@ -154,8 +154,8 @@ export default function Lab() {
               className="mt-4 w-full resize-none rounded-2xl bg-ink/40 p-4 text-lg text-cream placeholder:text-cream/45 focus:outline-none focus:ring-2 focus:ring-lime"
             />
             <div className="mt-3 flex flex-wrap gap-2">
-              {EXAMPLES.map((e) => (
-                <button key={e} onClick={() => setPrompt(e)} className="rounded-full bg-cream/15 px-3 py-1.5 text-left text-xs font-semibold transition hover:bg-cream/25">
+              {EXAMPLES.map((e, i) => (
+                <button key={e} onClick={() => setPrompt(e)} className={`rounded-full bg-cream/15 px-3 py-1.5 text-left text-xs font-semibold transition hover:bg-cream/25 ${i >= 4 ? "hidden sm:inline-block" : ""}`}>
                   {e}
                 </button>
               ))}
@@ -199,9 +199,9 @@ export default function Lab() {
 
           {/* preview */}
           <section className="rounded-[2rem] bg-ink-2 p-6 sm:p-8">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="mb-4 flex flex-col gap-3">
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-cream/55">Preview</p>
-              <div className="max-w-full">
+              <div className="min-w-0">
                 <ScopePicker />
               </div>
             </div>

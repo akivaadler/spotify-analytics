@@ -102,7 +102,7 @@ export default function Dashboard() {
             {r.label}
             <span className="text-lime">.</span>
           </h1>
-          <div className="md:max-w-[60%]">
+          <div className="min-w-0 md:max-w-[60%]">
             <ScopePicker />
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function Dashboard() {
           <Stat label="Variety" value={`${r.diversity.score}`} sub="out of 100" color="text-sky" />
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3 [&>*]:min-w-0">
           {/* top songs with rules */}
           <Card title="Top songs" hint="Choose your own ranking rules." accent="bg-lime" className="lg:col-span-2">
             <div className="mb-5 flex flex-wrap gap-2">
@@ -417,7 +417,7 @@ export default function Dashboard() {
               Ask for any stat in plain English, like <i>&ldquo;which artist do I play most on Sundays?&rdquo;</i>. The AI writes the metric and it shows up here and in your story.
             </Link>
           ) : (
-            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
               {metrics.map((m) => (
                 <CustomCard key={m.id} m={m} onDelete={() => deleteMetric(m.id)} />
               ))}
