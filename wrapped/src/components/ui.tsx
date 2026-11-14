@@ -160,7 +160,7 @@ export function VBars({
   format?: (v: number) => string;
 }) {
   const max = Math.max(1e-9, ...items.map((i) => i.value));
-  const every = Math.ceil(items.length / 12);
+  const every = items.length > 12 ? Math.ceil(items.length / 6) : 1;
   return (
     <div>
       <div className="flex items-end gap-[3px]" style={{ height }}>
@@ -178,7 +178,7 @@ export function VBars({
       </div>
       <div className="mt-1.5 flex gap-[3px] text-[10px] text-cream/50">
         {items.map((it, i) => (
-          <div key={i} className="flex-1 truncate text-center">
+          <div key={i} className="flex-1 overflow-visible whitespace-nowrap text-center">
             {i % every === 0 ? it.label : ""}
           </div>
         ))}

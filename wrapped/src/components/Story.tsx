@@ -8,6 +8,7 @@ import { Blob, Clock, Rings, Squiggle, Starburst, Wordmark } from "./ui";
 import type { CustomMetric } from "@/lib/data-context";
 import type { MetricOutput } from "@/lib/sandbox";
 import { MetricView } from "./MetricView";
+import type { DeepResult } from "@/lib/deep";
 
 interface Slide {
   id: string;
@@ -43,7 +44,7 @@ function RankList({ rows, dark = false }: { rows: { title: string; sub: string; 
   );
 }
 
-export function buildSlides(r: Report, custom: { m: CustomMetric; out: MetricOutput }[]): Slide[] {
+export function buildSlides(r: Report, custom: { m: CustomMetric; out: MetricOutput }[], deep: DeepResult[] = []): Slide[] {
   const S: Slide[] = [];
   const year = r.label;
   const top = r.topArtists[0];
@@ -402,6 +403,27 @@ export function buildSlides(r: Report, custom: { m: CustomMetric; out: MetricOut
       ),
     });
   }
+
+  const deepBg = ["bg-violet text-cream", "bg-blue text-cream", "bg-ink-2 text-cream", "bg-ink-3 text-cream"];
+  deep
+    .filter((d) => d.m.story)
+    .forEach(({ m, out }, i) => {
+      S.push({
+        id: "deep-" + m.id,
+        bg: deepBg[i % deepBg.length],
+        ms: 9000,
+        body: (
+          <div className="relative">
+            <Kicker>Deep cut</Kicker>
+            <Big className="d1 mt-4 text-4xl sm:text-5xl">{m.story}</Big>
+            <p className="d2 mt-3 animate-rise text-cream/75">{m.desc}</p>
+            <div className="d3 mt-8 animate-rise">
+              <MetricView out={out} unit={m.unit} large />
+            </div>
+          </div>
+        ),
+      });
+    });
 
   for (const { m, out } of custom) {
     S.push({

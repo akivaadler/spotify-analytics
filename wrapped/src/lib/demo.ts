@@ -63,6 +63,11 @@ export function generateDemo(seed = 7): Play[] {
       burst: Math.floor(r() * DAYS),
     });
   });
+  const weighted = (ts: Track[]) => {
+    let x = r() * ts.reduce((acc, t) => acc + 0.15 + t.appeal, 0);
+    for (const t of ts) if ((x -= 0.15 + t.appeal) <= 0) return t;
+    return ts[ts.length - 1];
+  };
   const shows = [
     { show: "The Long Way Round", eps: 120 },
     { show: "Small Questions, Big Answers", eps: 80 },
@@ -104,24 +109,27 @@ export function generateDemo(seed = 7): Play[] {
         const sh = pick(shows);
         const ms = 600_000 + Math.floor(r() * 2_400_000);
         t += ms;
-        plays.push(mk(t, ms, { kind: "episode", show: sh.show, episode: `Ep. ${1 + Math.floor(r() * sh.eps)}: ${pick(W)} ${pick(W2)}`, uri: `spotify:episode:demo${Math.floor(r() * 1e6)}` }, device, country, "clickrow", "endplay", false, false));
+        plays.push(mk(t, ms, { kind: "episode", show: sh.show, episode: `Ep. ${1 + Math.floor(r() * sh.eps)}: ${pick(W)} ${pick(W2)}`, uri: `spotify:episode:demo${Math.floor(r() * 1e6)}` }, device, country, "clickrow", r() < (sh === shows[0] ? 0.75 : 0.35) ? "trackdone" : "endplay", false, false));
         continue;
       }
       const len = 4 + Math.floor(r() * 22);
       const shuffle = r() < 0.55;
       let focus = pickArtist();
       let prevSkip = false;
+      let prevTrack: Track | null = null;
       for (let k = 0; k < len; k++) {
         if (r() < 0.35) focus = pickArtist();
-        const tr = focus.tracks.reduce((best, tk) => (r() * (0.2 + tk.appeal) > r() * (0.2 + best.appeal) ? tk : best), pick(focus.tracks));
+        const replay: boolean = prevTrack !== null && !prevSkip && r() < 0.025;
+        const tr: Track = replay && prevTrack ? prevTrack : weighted(focus.tracks);
         const skipP = 0.32 - tr.appeal * 0.28;
         const skipped = r() < skipP;
         const ms = skipped ? 2_000 + Math.floor(r() * 40_000) : r() < 0.06 ? Math.floor(tr.dur * r()) : tr.dur;
         t += ms + Math.floor(r() * 4_000);
-        const reasonStart = k === 0 ? (r() < 0.6 ? "clickrow" : "playbtn") : prevSkip ? "fwdbtn" : r() < 0.08 ? "clickrow" : "trackdone";
+        const reasonStart = replay ? "backbtn" : k === 0 ? (r() < 0.6 ? "clickrow" : "playbtn") : prevSkip ? "fwdbtn" : r() < 0.12 + tr.appeal * 0.25 ? "clickrow" : "trackdone";
         const reasonEnd = skipped ? "fwdbtn" : k === len - 1 ? "endplay" : "trackdone";
         plays.push(mk(t, ms, { kind: "track", track: tr.name, artist: tr.artist, album: tr.album, uri: tr.uri }, device, country, reasonStart, reasonEnd, shuffle, skipped));
         prevSkip = skipped;
+        prevTrack = tr;
       }
     }
   }

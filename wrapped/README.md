@@ -34,6 +34,22 @@ The only server code is `/api/metric`, and it receives just the user's question 
 | Persona | Six traits (exploration, loyalty, after dark, replay, intention, album depth) |
 | Podcasts, devices, countries, offline share | |
 
+### Deep cuts: 50 behavioural metrics
+
+`src/lib/deep.ts` holds 50 more metrics, grouped into six categories. They're built on how each play **started**
+(`clickrow` / `playbtn` / `backbtn` means you picked it, `trackdone` means it played on its own) and how it **ended**
+(finished, skipped, stopped), along with each song's full history.
+
+- **Choice:** most actively chosen songs, albums and artists; songs you hand-pick vs. ones you only hear on autopilot; rewind magnets; session starters; control by hour and by month; "the algorithm got it right"; self-made discoveries.
+- **Skips:** instant rejections; songs you never leave early; skip trend; the shuffle penalty; second chances; burnout detector; skip-on-sight artists.
+- **Lifecycle:** longest relationships; love at first listen (fastest to 10 plays); flash in the pan; slow burners; evergreens; lifers; comfort songs; rotation size; novelty and throwback share; discovery conversion; gateway songs; taste stability.
+- **Depth:** longest repeat streak; instant replays; one-song albums and artists; deepest catalogue dives; albums you let play through.
+- **Rituals:** morning, after-midnight, commute, weekend and summer songs; daily rituals; your power hour; session length by start time.
+- **Context:** offline essentials; device signatures; travel soundtrack; shuffle's best picks; podcast follow-through.
+
+They appear in the dashboard's **Deep cuts** section, with category filters, and six of them are featured in the story.
+A metric is hidden when a period doesn't have enough data for it.
+
 A play counts as a "stream" at 30 seconds or more. Listening time counts every millisecond.
 Times are converted to the time zone you pick on the home page.
 

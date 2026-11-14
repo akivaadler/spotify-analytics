@@ -9,7 +9,7 @@ import { Nav, ScopePicker, Wordmark } from "@/components/ui";
 import { Uploader } from "@/components/Uploader";
 
 export default function StoryPage() {
-  const { status, scope, report, plays, metrics } = useData();
+  const { status, scope, report, deep, plays, metrics } = useData();
   const router = useRouter();
   const [custom, setCustom] = useState<{ m: CustomMetric; out: MetricOutput }[]>([]);
   const [started, setStarted] = useState(false);
@@ -35,7 +35,7 @@ export default function StoryPage() {
   }, [status, metrics, plays, scope]);
 
   const r = useMemo(() => (status === "ready" ? report(scope) : null), [status, report, scope]);
-  const slides = useMemo(() => (r ? buildSlides(r, custom) : []), [r, custom]);
+  const slides = useMemo(() => (r ? buildSlides(r, custom, deep(scope)) : []), [r, custom, deep, scope]);
 
   if (status === "loading") return <div className="min-h-dvh" />;
   if (status === "empty")
