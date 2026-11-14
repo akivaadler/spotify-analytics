@@ -6,6 +6,7 @@ import { useData, type CustomMetric } from "@/lib/data-context";
 import { Clock, HBars, Meter, Nav, ScopePicker, VBars } from "@/components/ui";
 import { Uploader } from "@/components/Uploader";
 import { MetricView } from "@/components/MetricView";
+import { DeepCuts } from "@/components/DeepCuts";
 import { sandbox, type MetricOutput } from "@/lib/sandbox";
 import {
   DOWS,
@@ -401,6 +402,8 @@ export default function Dashboard() {
             {r.places.countries.length > 0 && <p className="mt-4 text-sm text-cream/55">Countries: {r.places.countries.join(", ")}</p>}
           </Card>
         </div>
+
+        <DeepCuts />
 
         {/* custom metrics */}
         <section className="mt-12">

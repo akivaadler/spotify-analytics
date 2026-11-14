@@ -6,6 +6,7 @@ import { localize, defaultTimeZone } from "./localize";
 import { clearLibrary, loadLibrary, readLS, saveLibrary, writeLS, type Library } from "./storage";
 import { buildReport, yearsIn, type Report } from "./analytics";
 import type { MetricViz } from "./sandbox";
+import { runDeep, type DeepResult } from "./deep";
 
 export interface CustomMetric {
   id: string;
@@ -30,6 +31,7 @@ interface Ctx {
   setLibrary: (plays: Play[], source: Library["source"], files: string[]) => Promise<void>;
   reset: () => Promise<void>;
   report: (scope: Scope) => Report;
+  deep: (scope: Scope) => DeepResult[];
   metrics: CustomMetric[];
   saveMetric: (m: CustomMetric) => void;
   deleteMetric: (id: string) => void;
@@ -74,6 +76,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [cache, plays],
   );
 
+  const deepCache = useMemo(() => new Map<Scope, DeepResult[]>(), [plays]);
+  const deep = useCallback(
+    (s: Scope) => {
+      let r = deepCache.get(s);
+      if (!r) deepCache.set(s, (r = runDeep(plays, s)));
+      return r;
+    },
+    [deepCache, plays],
+  );
+
   const value: Ctx = {
     status,
     library,
@@ -102,6 +114,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setStatus("empty");
     },
     report,
+    deep,
     metrics,
     saveMetric: (m) => {
       setMetrics((prev) => {

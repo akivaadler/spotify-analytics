@@ -39,6 +39,7 @@ The user describes a metric in plain English; you return a spec whose \`code\` i
 
 ## Conventions
 - A "play"/"stream" counts only when ms >= 30000 (helpers.isStream). Listening TIME uses all ms.
+- Active choice: the user picked the play when reasonStart is "clickrow", "playbtn" or "backbtn" (helpers.isIntentional). Passive: reasonStart "trackdone" means it played on its own after the previous track. A full listen is reasonEnd "trackdone"; a skip is helpers.isSkip.
 - For music metrics filter with helpers.isMusic. Identify songs by helpers.trackKey(p), albums by album + artist.
 - Arrays can hold 200k+ items: stay O(n) or O(n log n). Never nest loops over all plays.
 - Pure computation only: no fetch, no DOM, no async, no randomness, no Date.now() (use the data's own timestamps).
