@@ -119,16 +119,25 @@ export function HBars({
   items,
   color = "bg-lime",
   format = (v: number) => Math.round(v).toLocaleString(),
+  onItem,
 }: {
   items: { label: string; sub?: string; value: number }[];
   color?: string;
   format?: (v: number) => string;
+  onItem?: (item: { label: string; sub?: string; value: number }) => void;
 }) {
   const max = Math.max(1, ...items.map((i) => i.value));
   return (
     <ol className="space-y-2.5">
       {items.map((it, i) => (
-        <li key={i} className="grid grid-cols-[1.6rem_1fr] items-center gap-2">
+        <li
+          key={i}
+          className={`grid grid-cols-[1.6rem_1fr] items-center gap-2 ${onItem ? "-mx-2 cursor-pointer rounded-xl px-2 py-1 transition hover:bg-white/[0.06]" : ""}`}
+          onClick={onItem ? () => onItem(it) : undefined}
+          role={onItem ? "button" : undefined}
+          tabIndex={onItem ? 0 : undefined}
+          onKeyDown={onItem ? (e) => e.key === "Enter" && onItem(it) : undefined}
+        >
           <span className="font-display text-lg font-bold text-cream/50">{i + 1}</span>
           <div className="min-w-0">
             <div className="flex items-baseline justify-between gap-3">

@@ -9,7 +9,19 @@ const fmt = (v: number, unit: string) => {
   return unit === "%" ? `${n}%` : `${n} ${unit}`;
 };
 
-export function MetricView({ out, unit, large = false }: { out: MetricOutput; unit: string; large?: boolean }) {
+export function MetricView({
+  out,
+  unit,
+  large = false,
+  limit,
+  onItem,
+}: {
+  out: MetricOutput;
+  unit: string;
+  large?: boolean;
+  limit?: number;
+  onItem?: (item: { label: string; sub?: string; value: number }) => void;
+}) {
   if (out.viz === "number") {
     return (
       <div>
@@ -21,7 +33,7 @@ export function MetricView({ out, unit, large = false }: { out: MetricOutput; un
     );
   }
   if (!out.items.length) return <p className="text-cream/60">Nothing to show for this period.</p>;
-  if (out.viz === "list") return <HBars items={out.items.slice(0, large ? 6 : 10)} color="bg-lime" format={(v) => fmt(v, unit)} />;
+  if (out.viz === "list") return <HBars items={out.items.slice(0, limit ?? (large ? 6 : 10))} color="bg-lime" format={(v) => fmt(v, unit)} onItem={onItem} />;
   if (out.viz === "line") return <Line items={out.items} color="#ff4fb8" height={large ? 200 : 140} />;
   return <VBars items={out.items} color="#d4ff3a" height={large ? 200 : 140} format={(v) => fmt(v, unit)} />;
 }

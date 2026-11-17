@@ -8,6 +8,7 @@ import { Uploader } from "@/components/Uploader";
 import { MetricView } from "@/components/MetricView";
 import { sandbox, type MetricOutput, type MetricViz } from "@/lib/sandbox";
 import { readLS, writeLS } from "@/lib/storage";
+import type { RefineSeed } from "@/components/DeepDive";
 
 const EXAMPLES = [
   "Which artists do I play most on Sundays?",
@@ -43,7 +44,55 @@ export default function Lab() {
   const [keyOpen, setKeyOpen] = useState(false);
   const [userKey, setUserKey] = useState("");
 
+  const [base, setBase] = useState<RefineSeed | null>(null);
+  const [ideas, setIdeas] = useState<{ title: string; prompt: string; why: string }[]>([]);
+  const [ideasBusy, setIdeasBusy] = useState(false);
+
   useEffect(() => setUserKey(readLS("encore.apiKey", "")), []);
+
+  // Arriving from "Refine with AI" on a metric or a song/artist profile.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("refine") !== "1") return;
+    let seed: RefineSeed | null = null;
+    try {
+      seed = JSON.parse(sessionStorage.getItem("encore.refine") ?? "null");
+    } catch {
+      /* ignore */
+    }
+    if (!seed) return;
+    setBase(seed.title ? seed : null);
+    setPrompt(seed.prompt ?? (seed.title ? `Like “${seed.title}”, but ` : ""));
+    setTimeout(() => {
+      const el = document.getElementById("prompt") as HTMLTextAreaElement | null;
+      if (el) (el.focus(), el.setSelectionRange(el.value.length, el.value.length));
+    }, 50);
+  }, []);
+
+  async function suggest() {
+    if (!base) return;
+    setApiErr(null);
+    setIdeasBusy(true);
+    try {
+      const res = await fetch("/api/metric", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...(userKey ? { "x-anthropic-key": userKey } : {}) },
+        body: JSON.stringify({ mode: "suggest", base, prompt: prompt.startsWith("Like “") ? "" : prompt }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data.error === "no_key") {
+          setKeyOpen(true);
+          setApiErr(data.message ?? "An Anthropic API key is needed.");
+        } else setApiErr(data.error ?? `Request failed (${res.status})`);
+        return;
+      }
+      setIdeas(data.ideas ?? []);
+    } catch {
+      setApiErr("Network error. Check your connection and try again.");
+    } finally {
+      setIdeasBusy(false);
+    }
+  }
 
   // ?edit=<id> opens a saved metric
   useEffect(() => {
@@ -79,7 +128,7 @@ export default function Lab() {
       const res = await fetch("/api/metric", {
         method: "POST",
         headers: { "content-type": "application/json", ...(userKey ? { "x-anthropic-key": userKey } : {}) },
-        body: JSON.stringify({ prompt: p, previousCode: repair?.code, error: repair?.error }),
+        body: JSON.stringify({ prompt: p, previousCode: repair?.code, error: repair?.error, base: repair ? null : base }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -141,8 +190,55 @@ export default function Lab() {
         <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] [&>*]:min-w-0">
           {/* composer */}
           <section className="rounded-[2rem] bg-violet p-6 sm:p-8">
+            {base && (
+              <div className="mb-5 rounded-2xl bg-ink/35 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-wider text-lime">Building on</p>
+                    <p className="font-display mt-1 text-xl font-extrabold">{base.title}</p>
+                    {base.description && <p className="mt-0.5 line-clamp-2 text-sm text-cream/70">{base.description}</p>}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setBase(null);
+                      setIdeas([]);
+                      setPrompt("");
+                    }}
+                    aria-label="Stop building on this metric"
+                    className="shrink-0 rounded-full px-2 text-cream/60 hover:text-cream"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <button
+                  onClick={suggest}
+                  disabled={ideasBusy}
+                  className="mt-4 rounded-full bg-cream px-4 py-2 text-sm font-bold text-ink transition enabled:hover:scale-105 disabled:opacity-60"
+                >
+                  {ideasBusy ? "Thinking up ideas…" : ideas.length ? "Suggest different ideas ✦" : "Suggest more advanced versions ✦"}
+                </button>
+                {ideas.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {ideas.map((it) => (
+                      <button
+                        key={it.title}
+                        onClick={() => {
+                          setPrompt(it.prompt);
+                          generate(it.prompt);
+                        }}
+                        disabled={!!busy}
+                        className="block w-full rounded-xl bg-cream/10 p-3 text-left transition hover:bg-cream/20"
+                      >
+                        <span className="block font-bold">{it.title} →</span>
+                        <span className="mt-0.5 block text-xs text-cream/70">{it.why}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <label htmlFor="prompt" className="font-display text-3xl font-extrabold">
-              What do you want to know?
+              {base ? "How should it be different?" : "What do you want to know?"}
             </label>
             <textarea
               id="prompt"
@@ -153,7 +249,7 @@ export default function Lab() {
               placeholder="e.g. Which song did I play most on rainy-day hours (2pm–6pm) in winter?"
               className="mt-4 w-full resize-none rounded-2xl bg-ink/40 p-4 text-lg text-cream placeholder:text-cream/45 focus:outline-none focus:ring-2 focus:ring-lime"
             />
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className={`mt-3 flex-wrap gap-2 ${base ? "hidden" : "flex"}`}>
               {EXAMPLES.map((e, i) => (
                 <button key={e} onClick={() => setPrompt(e)} className={`rounded-full bg-cream/15 px-3 py-1.5 text-left text-xs font-semibold transition hover:bg-cream/25 ${i >= 4 ? "hidden sm:inline-block" : ""}`}>
                   {e}
@@ -176,7 +272,7 @@ export default function Lab() {
               {keyOpen && (
                 <div className="mt-3 space-y-3 text-cream/80">
                   <p>
-                    Only your question and a description of the data fields are sent to the AI. <b>Your listening history never leaves this browser.</b> The code that comes back runs in an isolated worker with network access turned off.
+                    Only what you type, a description of the data fields, and (when refining) the name and code of the metric you started from are sent to the AI. <b>Your listening history never leaves this browser.</b> The code that comes back runs in an isolated worker with network access turned off.
                   </p>
                   <label className="block">
                     <span className="text-xs font-bold uppercase tracking-wider">Your Anthropic API key (optional)</span>
@@ -249,6 +345,8 @@ export default function Lab() {
                       setOut(null);
                       setRunErr(null);
                       setPrompt("");
+                      setBase(null);
+                      setIdeas([]);
                       window.history.replaceState(null, "", "/lab");
                     }}
                     className="rounded-full px-4 py-2.5 font-bold text-cream/50 hover:text-cream"

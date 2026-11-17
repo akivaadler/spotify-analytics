@@ -7,6 +7,7 @@ import { Clock, HBars, Meter, Nav, ScopePicker, VBars } from "@/components/ui";
 import { Uploader } from "@/components/Uploader";
 import { MetricView } from "@/components/MetricView";
 import { DeepCuts } from "@/components/DeepCuts";
+import { DeepDive, MetricActions, useRefine } from "@/components/DeepDive";
 import { sandbox, type MetricOutput } from "@/lib/sandbox";
 import {
   DOWS,
@@ -35,8 +36,9 @@ function Card({
   className?: string;
   children: React.ReactNode;
 }) {
+  const refine = useRefine();
   return (
-    <section className={`rounded-[1.75rem] bg-ink-2 p-5 sm:p-6 ${className}`}>
+    <section className={`flex flex-col rounded-[1.75rem] bg-ink-2 p-5 sm:p-6 ${className}`}>
       <header className="mb-4 flex items-start gap-3">
         <span className={`mt-1.5 h-3 w-3 shrink-0 rounded-full ${accent}`} />
         <div className="min-w-0">
@@ -44,7 +46,9 @@ function Card({
           {hint && <p className="mt-0.5 text-sm text-cream/55">{hint}</p>}
         </div>
       </header>
-      {children}
+      <div className="flex-1">{children}</div>
+      {/* Only the card name goes to the AI. Hints can contain the user's own numbers. */}
+      <MetricActions onRefine={() => refine({ title, description: `The "${title}" card on the dashboard` })} />
     </section>
   );
 }
@@ -434,6 +438,8 @@ export default function Dashboard() {
 
 function CustomCard({ m, onDelete }: { m: CustomMetric; onDelete: () => void }) {
   const { plays, scope } = useData();
+  const refine = useRefine();
+  const [dive, setDive] = useState<{ kind: "custom"; metric: CustomMetric } | null>(null);
   const [out, setOut] = useState<MetricOutput | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
@@ -465,6 +471,8 @@ function CustomCard({ m, onDelete }: { m: CustomMetric; onDelete: () => void }) 
         </div>
       </div>
       {err ? <p className="rounded-xl bg-red/10 p-3 text-sm text-red">{err}</p> : out ? <MetricView out={out} unit={m.unit} /> : <div className="h-24 animate-pulse rounded-xl bg-white/5" />}
+      <MetricActions onDive={() => setDive({ kind: "custom", metric: m })} onRefine={() => refine({ title: m.title, description: m.description, unit: m.unit, code: m.code })} />
+      {dive && <DeepDive source={dive} onClose={() => setDive(null)} />}
     </section>
   );
 }

@@ -174,7 +174,9 @@ type Out = MetricOutput | null;
 const r1 = (x: number) => Math.round(x * 10) / 10;
 const pct = (a: number, b: number) => (b ? r1((a / b) * 100) : 0);
 const T = (c: DeepCtx) => [...c.tracks.values()];
-function list<X>(rows: X[], score: (x: X) => number, label: (x: X) => string, sub: (x: X) => string, n = 10): Out {
+/** How many rows ranked lists return. Raised temporarily for deep dives. */
+let LIMIT = 10;
+function list<X>(rows: X[], score: (x: X) => number, label: (x: X) => string, sub: (x: X) => string, n = LIMIT): Out {
   const items = rows
     .map((x) => ({ x, v: score(x) }))
     .filter((r) => Number.isFinite(r.v) && r.v > 0)
@@ -183,7 +185,7 @@ function list<X>(rows: X[], score: (x: X) => number, label: (x: X) => string, su
     .map(({ x, v }) => ({ label: label(x), sub: sub(x), value: r1(v) }));
   return items.length ? { viz: "list", items } : null;
 }
-function listAsc<X>(rows: X[], score: (x: X) => number, label: (x: X) => string, sub: (x: X) => string, n = 10): Out {
+function listAsc<X>(rows: X[], score: (x: X) => number, label: (x: X) => string, sub: (x: X) => string, n = LIMIT): Out {
   const items = rows
     .map((x) => ({ x, v: score(x) }))
     .filter((r) => Number.isFinite(r.v))
@@ -859,4 +861,18 @@ export function runDeep(all: LPlay[], scope: Scope): DeepResult[] {
     }
   }
   return res;
+}
+
+/** Run one metric with a longer ranking (used by the deep-dive panel). */
+export function runOne(all: LPlay[], scope: Scope, id: string, limit = 30): MetricOutput | null {
+  const m = DEEP_METRICS.find((x) => x.id === id);
+  if (!m) return null;
+  LIMIT = limit;
+  try {
+    return m.run(buildCtx(all, scope));
+  } catch {
+    return null;
+  } finally {
+    LIMIT = 10;
+  }
 }

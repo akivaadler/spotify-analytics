@@ -4,10 +4,13 @@ import { useMemo, useState } from "react";
 import { useData } from "@/lib/data-context";
 import { DEEP_CATS, DEEP_METRICS, type DeepCat } from "@/lib/deep";
 import { MetricView } from "./MetricView";
+import { DeepDive, MetricActions, useRefine, type DiveSource } from "./DeepDive";
 
 export function DeepCuts() {
   const { deep, scope } = useData();
   const [cat, setCat] = useState<DeepCat | "all">("all");
+  const [dive, setDive] = useState<DiveSource | null>(null);
+  const refine = useRefine();
   const results = useMemo(() => deep(scope), [deep, scope]);
   const shown = cat === "all" ? results : results.filter((r) => r.m.cat === cat);
   const missing = DEEP_METRICS.filter((m) => !results.some((r) => r.m.id === m.id) && (cat === "all" || m.cat === cat));
@@ -58,6 +61,10 @@ export function DeepCuts() {
               </div>
             </header>
             <MetricView out={out} unit={m.unit} />
+            <MetricActions
+              onDive={() => setDive({ kind: "deep", id: m.id, title: m.title, desc: m.desc, unit: m.unit })}
+              onRefine={() => refine({ title: m.title, description: m.desc, unit: m.unit })}
+            />
           </article>
         ))}
       </div>
@@ -67,6 +74,7 @@ export function DeepCuts() {
           Not enough data for this period: {missing.map((m) => m.title).join(" · ")}
         </p>
       )}
+      {dive && <DeepDive source={dive} onClose={() => setDive(null)} />}
     </section>
   );
 }

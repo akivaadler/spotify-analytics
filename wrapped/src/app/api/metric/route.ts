@@ -13,6 +13,33 @@ const MetricSpec = z.object({
   code: z.string().describe("Body of a JavaScript function (plays, ctx, helpers) that returns the result object"),
 });
 
+const Ideas = z.object({
+  ideas: z
+    .array(
+      z.object({
+        title: z.string().describe("Short name for the refined metric"),
+        prompt: z.string().describe("The full plain-English metric request, ready to build"),
+        why: z.string().describe("One short sentence on what it reveals that the original doesn't"),
+      }),
+    )
+    .describe("Exactly 4 ideas"),
+});
+
+interface Base {
+  title?: string;
+  description?: string;
+  unit?: string;
+  code?: string;
+}
+
+function baseBlock(base?: Base | null) {
+  if (!base?.title) return "";
+  let t = `\n\nThe user is building on this existing metric:\nTitle: ${base.title.slice(0, 200)}\nWhat it measures: ${(base.description ?? "").slice(0, 600)}`;
+  if (base.unit) t += `\nUnit: ${base.unit.slice(0, 40)}`;
+  if (base.code) t += `\nIts current code:\n\`\`\`js\n${base.code.slice(0, 6000)}\n\`\`\``;
+  return t;
+}
+
 const SYSTEM = `You write small, fast, correct JavaScript metrics over a person's Spotify listening history.
 The user describes a metric in plain English; you return a spec whose \`code\` is the BODY of a function:
 
@@ -58,9 +85,13 @@ export async function POST(req: Request) {
     prompt?: string;
     previousCode?: string;
     error?: string;
+    base?: Base | null;
+    mode?: "build" | "suggest";
   } | null;
-  const prompt = body?.prompt?.trim();
-  if (!prompt) return Response.json({ error: "Describe the metric you want." }, { status: 400 });
+  const mode = body?.mode === "suggest" ? "suggest" : "build";
+  const prompt = body?.prompt?.trim() ?? "";
+  if (mode === "build" && !prompt) return Response.json({ error: "Describe the metric you want." }, { status: 400 });
+  if (mode === "suggest" && !body?.base?.title) return Response.json({ error: "Nothing to build on." }, { status: 400 });
   if (prompt.length > 2000) return Response.json({ error: "That description is too long (max 2000 characters)." }, { status: 400 });
 
   const apiKey = process.env.ANTHROPIC_API_KEY || req.headers.get("x-anthropic-key") || "";
@@ -72,7 +103,37 @@ export async function POST(req: Request) {
   }
 
   const client = new Anthropic({ apiKey });
-  let content = `Metric request: ${prompt}`;
+  if (mode === "suggest") {
+    try {
+      const msg = await client.beta.messages.parse({
+        model: "claude-opus-5-5",
+        max_tokens: 8000,
+        betas: ["server-side-fallback-2026-07-01"],
+        fallbacks: "default",
+        output_config: { effort: "low", format: betaZodOutputFormat(Ideas) },
+        system: SYSTEM,
+        messages: [
+          {
+            role: "user",
+            content:
+              `Suggest 4 more nuanced or more complex versions of this metric that would reveal something deeper about the listener.` +
+              ` Each must be computable from the fields described above. Go beyond simple filters: think conditional comparisons, changes over time, sequences (what comes before or after), ratios between picked and autoplayed, or splitting by context.` +
+              (prompt ? ` The user's direction: ${prompt.slice(0, 500)}` : "") +
+              baseBlock(body?.base),
+          },
+        ],
+      });
+      if (msg.stop_reason === "refusal" || !msg.parsed_output) return Response.json({ error: "Couldn't come up with ideas for that one." }, { status: 422 });
+      return Response.json({ ideas: msg.parsed_output.ideas.slice(0, 4) });
+    } catch (err) {
+      if (err instanceof Anthropic.AuthenticationError) return Response.json({ error: "no_key", message: "That Anthropic API key was rejected." }, { status: 401 });
+      if (err instanceof Anthropic.RateLimitError) return Response.json({ error: "Rate limited. Wait a moment and try again." }, { status: 429 });
+      if (err instanceof Anthropic.APIError) return Response.json({ error: `Model error (${err.status ?? "?"}): ${err.message}` }, { status: 502 });
+      return Response.json({ error: "Unexpected error suggesting ideas." }, { status: 500 });
+    }
+  }
+
+  let content = `Metric request: ${prompt}${baseBlock(body?.base)}`;
   if (body?.previousCode && body?.error) {
     content += `\n\nYour previous attempt failed.\nCode:\n\`\`\`js\n${body.previousCode.slice(0, 8000)}\n\`\`\`\nError: ${body.error.slice(0, 1000)}\nFix it.`;
   }
