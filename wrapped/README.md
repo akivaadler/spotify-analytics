@@ -50,6 +50,16 @@ The only server code is `/api/metric`, and it receives just the user's question 
 They appear in the dashboard's **Deep cuts** section, with category filters, and six of them are featured in the story.
 A metric is hidden when a period doesn't have enough data for it.
 
+### Deep dive and Refine
+
+Every metric card has two actions:
+
+- **Deep dive** opens the full ranking (up to 30 rows) and the metric's result for each year.
+  Tapping any song, artist or album opens its profile: plays per month across your whole history, pick, skip and finish rates, share of your listening, first and last play, the hours you play it, and top songs for artists and albums.
+- **Refine with AI ✦** opens the Metric Lab with that metric as the starting point.
+  You describe how it should differ, or tap **Suggest more advanced versions** for four ideas from Claude.
+  Only the metric's name, description and (for custom metrics) code are sent, never the listening data.
+
 A play counts as a "stream" at 30 seconds or more. Listening time counts every millisecond.
 Times are converted to the time zone you pick on the home page.
 
